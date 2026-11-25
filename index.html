@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RMRPЮрист — ИИ-оверлей и база законов для RMRP</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: #070a0f; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; overflow-x: hidden; }
+a { text-decoration: none; color: inherit; }
+
+.glow-bg { position: fixed; top: -150px; left: 50%; transform: translateX(-50%); width: 800px; height: 500px; background: radial-gradient(circle, rgba(14,165,233,0.16) 0%, rgba(7,10,15,0) 70%); pointer-events: none; z-index: -1; }
+
+nav { max-width: 1120px; margin: 0 auto; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.brand { font-size: 20px; font-weight: 900; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; }
+.brand span { color: #38bdf8; }
+.nav-links { display: flex; gap: 24px; font-size: 14px; color: #94a3b8; font-weight: 500; }
+.nav-links a:hover { color: #fff; }
+.nav-btn { background: #0ea5e9; color: #fff; padding: 9px 18px; border-radius: 10px; font-size: 13.5px; font-weight: 700; transition: 0.2s; }
+.nav-btn:hover { background: #0284c7; transform: translateY(-1px); }
+
+.hero { max-width: 1120px; margin: 0 auto; padding: 60px 24px 50px; display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 40px; align-items: center; }
+.badge-pill { display: inline-block; background: rgba(14,165,233,0.12); border: 1px solid rgba(56,189,248,0.3); color: #38bdf8; font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 20px; margin-bottom: 18px; }
+.hero h1 { font-size: 42px; font-weight: 900; line-height: 1.15; margin-bottom: 18px; background: linear-gradient(135deg, #ffffff 30%, #38bdf8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.hero p { color: #94a3b8; font-size: 16px; margin-bottom: 28px; max-width: 500px; }
+.hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn-primary { background: #0ea5e9; color: #fff; padding: 14px 26px; border-radius: 12px; font-weight: 700; font-size: 15px; box-shadow: 0 8px 25px rgba(14,165,233,0.3); transition: 0.2s; }
+.btn-primary:hover { background: #0284c7; transform: translateY(-2px); }
+.btn-secondary { background: #11161d; color: #e2e8f0; border: 1px solid #1e293b; padding: 14px 24px; border-radius: 12px; font-weight: 700; font-size: 15px; transition: 0.2s; }
+.btn-secondary:hover { border-color: #38bdf8; }
+
+.app-mockup { background: #0b0f14; border: 1px solid #1e293b; border-radius: 16px; box-shadow: 0 25px 60px rgba(0,0,0,0.75); overflow: hidden; }
+.mock-header { background: #11161d; padding: 12px 14px; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; }
+.mock-tag { background: #0f2942; color: #38bdf8; border: 1px solid #0284c7; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+.mock-body { padding: 14px; display: flex; flex-direction: column; gap: 12px; font-size: 13px; height: 260px; overflow-y: auto; }
+.mock-user { align-self: flex-end; background: #0284c7; color: #fff; padding: 9px 14px; border-radius: 12px 12px 2px 12px; max-width: 82%; }
+.mock-ai { background: #11161d; border: 1px solid #1e293b; padding: 12px; border-radius: 12px; color: #cbd5e1; line-height: 1.5; }
+.mock-ai b { color: #fff; }
+
+.section { max-width: 1120px; margin: 0 auto; padding: 60px 24px; }
+.sec-title { text-align: center; font-size: 32px; font-weight: 800; margin-bottom: 12px; }
+.sec-sub { text-align: center; color: #94a3b8; max-width: 600px; margin: 0 auto 44px; font-size: 15px; }
+
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.feature-card { background: #0e131a; border: 1px solid #1e293b; border-radius: 16px; padding: 24px; transition: 0.25s; }
+.feature-card:hover { border-color: #0ea5e9; transform: translateY(-4px); }
+.f-icon { width: 42px; height: 42px; border-radius: 10px; background: rgba(14,165,233,0.12); color: #38bdf8; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 17px; margin-bottom: 16px; }
+.feature-card h3 { font-size: 17px; margin-bottom: 8px; color: #f8fafc; }
+.feature-card p { font-size: 13.5px; color: #94a3b8; }
+
+.price-card { background: #0e131a; border: 1px solid #1e293b; border-radius: 18px; padding: 28px; display: flex; flex-direction: column; justify-content: space-between; }
+.price-card.popular { border: 2px solid #0ea5e9; position: relative; background: linear-gradient(180deg, rgba(14,165,233,0.08) 0%, #0e131a 100%); }
+.pop-badge { position: absolute; top: -12px; right: 20px; background: #0ea5e9; color: #fff; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 12px; }
+.price-val { font-size: 34px; font-weight: 900; margin: 14px 0; color: #fff; }
+.price-val span { font-size: 14px; color: #64748b; font-weight: normal; }
+.price-list { list-style: none; margin-bottom: 24px; font-size: 13.5px; color: #cbd5e1; display: flex; flex-direction: column; gap: 10px; }
+
+footer { border-top: 1px solid #1e293b; text-align: center; padding: 30px 24px; color: #64748b; font-size: 13px; margin-top: 40px; }
+
+@media (max-width: 850px) {
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .hero { grid-template-columns: 1fr; padding-top: 40px; }
+    .grid-3 { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 32px; }
+    .nav-links { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="glow-bg"></div>
+
+<nav>
+    <div class="brand"><span>RMRP</span>Юрист</div>
+    <div class="nav-links">
+        <a href="#features">Возможности</a>
+        <a href="#pricing">Тарифы</a>
+        <a href="https://github.io" target="_blank">Форум поддержки</a>
+    </div>
+    <a href="#pricing" class="nav-btn">Получить доступ</a>
+</nav>
+<section class="hero">
+    <div>
+        <div class="badge-pill">ОБНОВЛЕНИЕ v2.0 • ДЛЯ ПК И ANDROID</div>
+        <h1>Твой тактический ИИ-оверлей для GTA 5 RP RMRP</h1>
+        <p>Мгновенный поиск по всем 31 кодексу и ФЗ сервера, защита от НРП-наказаний, голосовой ввод по кнопке и готовые фразы в войс прямо поверх игры.</p>
+        <div class="hero-btns">
+            <a href="#pricing" class="btn-primary">Купить ключ доступа</a>
+            <a href="https://github.io" target="_blank" class="btn-secondary">Форум и баг-репорты</a>
+        </div>
+    </div>
+
+    <div class="app-mockup">
+        <div class="mock-header">
+            <strong style="color:#38bdf8; font-size:14px;">RMRPЮрист <span style="font-size:10px; color:#64748b; font-weight:normal;">(ДЕМО)</span></strong>
+            <div style="display:flex; gap:6px; align-items:center;">
+                <span class="mock-tag">Законка</span>
+                <span class="mock-tag" style="background:#2d1518; color:#fca5a5; border-color:#7f1d1d;">НРП</span>
+                <button id="demo-role-btn" onclick="cycleDemoRole()" class="mock-tag" style="cursor:pointer; background:#16202c; border-color:#38bdf8;">ОФИЦЕР ↻</button>
+            </div>
+        </div>
+
+        <div id="demo-chat-box" class="mock-body">
+            <div class="mock-user">Гражданин не выходит из машины и игнорирует 2 требования</div>
+            <div class="mock-ai">
+                <div style="color:#38bdf8; font-size:11px; font-weight:bold; margin-bottom:4px;">ОФИЦЕР</div>
+                <b>• Суть:</b> Можно вытаскивать из авто и задерживать за неповиновение.<br>
+                <b>• Закон:</b> КоАП RMRP -> Статья 8.7 (Неповиновение законному распоряжению).<br>
+                <b>• Детали:</b> Штраф 15.000–30.000 руб. или арест 14 суток. Сначала представьтесь по РП.<br>
+                <b style="color:#38bdf8;">• Фраза в войс:</b> «Вы задержаны по статье 8.7 КоАП за неповиновение, ваши права будут зачитаны в отделе».
+            </div>
+        </div>
+
+        <div style="padding:8px 12px; background:#11161d; border-top:1px solid #1e293b; display:flex; gap:6px; overflow-x:auto;">
+            <button onclick="runDemoPreset('miranda')" style="background:#16202c; color:#cbd5e1; border:1px solid #1e293b; border-radius:12px; padding:4px 10px; font-size:11px; cursor:pointer; white-space:nowrap;">Миранда</button>
+            <button onclick="runDemoPreset('search')" style="background:#16202c; color:#cbd5e1; border:1px solid #1e293b; border-radius:12px; padding:4px 10px; font-size:11px; cursor:pointer; white-space:nowrap;">Обыск без причины</button>
+            <button onclick="runDemoPreset('weapon')" style="background:#16202c; color:#cbd5e1; border:1px solid #1e293b; border-radius:12px; padding:4px 10px; font-size:11px; cursor:pointer; white-space:nowrap;">Оружие в руках</button>
+            <button onclick="runDemoPreset('nrp')" style="background:#16202c; color:#fca5a5; border:1px solid #7f1d1d; border-radius:12px; padding:4px 10px; font-size:11px; cursor:pointer; white-space:nowrap;">Проверка на НРП</button>
+        </div>
+
+        <div style="padding:8px 12px; background:#0b0f14; border-top:1px solid #1e293b; display:flex; gap:8px;">
+            <input type="text" id="demo-input" placeholder="Попробуйте задать вопрос в демо..." onkeydown="if(event.key==='Enter') runDemoCustom()" style="flex:1; background:#11161d; border:1px solid #1e293b; color:#fff; padding:8px 12px; border-radius:8px; font-size:12.5px; outline:none;">
+            <button onclick="runDemoCustom()" style="background:#0ea5e9; color:#fff; border:none; border-radius:8px; padding:0 14px; font-weight:bold; cursor:pointer;">➤</button>
+        </div>
+    </div>
+</section>
+<section class="section" id="features">
+    <h2 class="sec-title">Создан для реальных РП-ситуаций</h2>
+    <p class="sec-sub">Всё, что нужно сотруднику МВД, ФСБ, Армии, адвокату или обычному игроку — в одном компактном окне поверх игры.</p>
+
+    <div class="grid-3">
+        <div class="feature-card">
+            <div class="f-icon">ИИ</div>
+            <h3>Умный ИИ-юрист с репликами</h3>
+            <p>Опишите ситуацию текстом или голосом — нейросеть найдет нужную статью, предупредит об НРП и выдаст готовую фразу для микрофона.</p>
+        </div>
+        <div class="feature-card">
+            <div class="f-icon">31</div>
+            <h3>Вся «Законка» и база НРП</h3>
+            <p>Полная актуальная база УК, КоАП, ПК, ПДД, ФЗ и правил проекта со сквозным мгновенным поиском без траты дневных запросов.</p>
+        </div>
+        <div class="feature-card">
+            <div class="f-icon">ПК</div>
+            <h3>Стелс-режим и бинды</h3>
+            <p>Оверлей скрывается в один клик по F9, не попадает на откаты NVIDIA / OBS, поддерживает настройку прозрачности и бинд кнопки микрофона.</p>
+        </div>
+        <div class="feature-card">
+            <div class="f-icon">05</div>
+            <h3>Таймер ожидания адвоката</h3>
+            <p>Встроенный таймер на 5 и 10 минут со звуковым оповещением, чтобы строго соблюдать процессуальный кодекс при задержании.</p>
+        </div>
+        <div class="feature-card">
+            <div class="f-icon">3X</div>
+            <h3>Три тактические роли</h3>
+            <p>Переключайтесь в один клик между режимами «Офицер», «Адвокат» и «Гражданин» — советы подстраиваются под вашу сторону.</p>
+        </div>
+        <div class="feature-card">
+            <div class="f-icon">UI</div>
+            <h3>Гибкая кастомизация</h3>
+            <p>Выбирайте тему оформления (Ночь, OLED, День) и акцентный цвет под форму вашей фракции с плавными анимациями.</p>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="pricing">
+    <h2 class="sec-title">Выберите свой доступ</h2>
+    <p class="sec-sub">Мгновенная активация по ключу. Справочники «Законка» и «НРП» работают без ограничений 24/7.</p>
+
+    <div class="grid-4">
+        <div class="price-card">
+            <div>
+                <h3 style="color:#94a3b8; font-size:15px;">Минимум</h3>
+                <div class="price-val">25 ₽ <span>/ 7 дней</span></div>
+                <ul class="price-list">
+                    <li>✓ Полный доступ к ИИ-юристу</li>
+                    <li>✓ 50 ИИ-запросов каждые 24 часа</li>
+                    <li>✓ Безлимитная Законка и НРП</li>
+                    <li>✓ ПК (.exe) и Android (.apk)</li>
+                </ul>
+            </div>
+            <a href="https://t.me/tvoy_jurist_rmrp" target="_blank" class="btn-secondary" style="text-align:center; padding:12px;">Купить в Telegram</a>
+        </div>
+
+        <div class="price-card popular">
+            <div class="pop-badge">ХИТ</div>
+            <div>
+                <h3 style="color:#38bdf8; font-size:15px;">Стандарт</h3>
+                <div class="price-val">99 ₽ <span>/ 30 дней</span></div>
+                <ul class="price-list">
+                    <li>✓ Все функции + Стелс-режим</li>
+                    <li>✓ 50 ИИ-запросов каждые 24 часа</li>
+                    <li>✓ Голосовой ввод по кнопке</li>
+                    <li>✓ Автообновление базы законов</li>
+                </ul>
+            </div>
+            <a href="https://t.me/tvoy_jurist_rmrp" target="_blank" class="btn-primary" style="text-align:center; padding:12px;">Купить в Telegram</a>
+        </div>
+
+        <div class="price-card">
+            <div>
+                <h3 style="color:#94a3b8; font-size:15px;">Сезон</h3>
+                <div class="price-val">299 ₽ <span>/ 90 дней</span></div>
+                <ul class="price-list">
+                    <li>✓ Доступ на 3 месяца игры</li>
+                    <li>✓ 50 ИИ-запросов каждые 24 часа</li>
+                    <li>✓ Безлимитный поиск по кодексам</li>
+                    <li>✓ Приоритетная поддержка</li>
+                </ul>
+            </div>
+            <a href="https://t.me/tvoy_jurist_rmrp" target="_blank" class="btn-secondary" style="text-align:center; padding:12px;">Купить в Telegram</a>
+        </div>
+
+        <div class="price-card" style="border-color:#0284c7;">
+            <div>
+                <h3 style="color:#38bdf8; font-size:15px;">Навсегда</h3>
+                <div class="price-val">399 ₽ <span>/ без срока</span></div>
+                <ul class="price-list">
+                    <li>✓ Вечный доступ без продлений</li>
+                    <li>✓ 50 ИИ-запросов каждые 24 часа</li>
+                    <li>✓ Все будущие обновления</li>
+                    <li>✓ Поддержка на форуме и в ТГ</li>
+                </ul>
+            </div>
+            <a href="https://t.me/tvoy_jurist_rmrp" target="_blank" class="btn-secondary" style="text-align:center; padding:12px; border-color:#0284c7; color:#38bdf8;">Купить навсегда</a>
+        </div>
+    </div>
+</section>
+<footer>
+    <p>© 2026 RMRPЮрист — Неофициальный тактический помощник для игроков GTA 5 RP (RMRP).</p>
+    <p style="margin-top:6px;">
+        <a href="https://github.io" target="_blank" style="color:#38bdf8;">Форум поддержки</a> •
+        <a href="https://t.me/tvoy_jurist_rmrp" target="_blank" style="color:#38bdf8;">Связаться с разработчиком</a>
+    </p>
+</footer>
+
+<script>
+const demoRoles = ["ОФИЦЕР", "АДВОКАТ", "ГРАЖДАНИН"];
+let demoRoleIdx = 0;
+
+const demoPresets = {
+    miranda: {
+        q: "Как правильно зачитать Миранду при задержании?",
+        a: {
+            "ОФИЦЕР": "<b>• Суть:</b> Зачитывается сразу после надевания наручников или по пути в отдел.<br><b>• Закон:</b> Процессуальный кодекс RMRP -> Порядок задержания.<br><b>• Детали:</b> Обязательно спросите, ясны ли права. Если задержанный молчит — повторите второй раз.<br><b style='color:#38bdf8;'>• Фраза в войс:</b> «Вы имеете право хранить молчание, всё сказанное вами может быть использовано против вас. Вы имеете право на адвоката и один телефонный звонок. Вам ясны ваши права?»",
+            "АДВОКАТ": "<b>• Суть:</b> Если офицер не зачитал Миранду дважды или не спросил, ясны ли права — требуйте освобождения подзащитного.<br><b>• Закон:</b> Процессуальный кодекс RMRP -> Основания для освобождения.<br><b>• Детали:</b> Нарушение порядка задержания делает дальнейшие процессуальные действия незаконными.<br><b style='color:#38bdf8;'>• Фраза в войс:</b> «Офицер, на вашей видеофиксации отсутствует зачитывание правила Миранды, я требую немедленно отпустить моего подзащитного».",
+            "ГРАЖДАНИН": "<b>• Суть:</b> До приезда адвоката вы имеете полное право ничего не отвечать на вопросы сотрудников.<br><b>• Закон:</b> Конституция и ПК RMRP -> Право не свидетельствовать против себя.<br><b>• Детали:</b> Запомните, зачитали ли вам права — это ваш главный козырь в КПЗ.<br><b style='color:#38bdf8;'>• Фраза в войс:</b> «Я пользуюсь правом хранить молчание и требую государственного или частного адвоката»."
+        }
+    },
+    search: {
+        q: "Сотрудник начал обыскивать без причины на улице",
+        a: {
+            "ОФИЦЕР": "<b>• Суть:</b> Обыск на улице без ориентировки, ЧП или задержания запрещен — получите деморган за НРП Гос.<br><b>• Закон:</b> Процессуальный кодекс RMRP -> Основания для личного обыска.<br><b>• Детали:</b> Сначала установите законное основание для задержания и наденьте наручники.<br><b style='color:#38bdf8;'>• Фраза в войс:</b> «Гражданин, вы подходите под ориентировку, оставайтесь на месте для проверки документов».",
+            "АДВОКАТ": "<b>• Суть:</b> Прямое нарушение ПК. Все найденные при незаконном обыске вещи не являются уликами.<br><b>• Закон:</b> ПК RMRP -> Недопустимые доказательства.<br><b>• Детали:</b> Фиксируйте нарушение и требуйте прекращения процессуальных действий.<br><b style='color:#38bdf8;'>• Фраза в войс:</b> «Обыск проведен без законных оснований, данные улики являются недопустимыми по ПК».",
+            "ГРАЖДАНИН": "<b>• Суть:</b> Включайте откат. Сотрудник не имеет права лезть в карманы просто так без причины.<br><b>• Закон:</b> Правила проекта (NonRP Cop) + ПК RMRP.<br><b>• Детали:</b> Не выходите из игры (иначе получите бан за ОРП), решайте через адвоката или жалобу.<br><b style='color:#38bdf8;'>• Фраза в войс:</b> «На каком основании вы проводите личный обыск? Я не задержан, ведите видеофиксацию»."
+        }
+    },
+    weapon: {
+        q: "Человек бежит по улице с оружием в руках",
+        a: {
+            "ОФИЦЕР": "<b>• Суть:</b> Открытое ношение оружия в общественном месте — это статья УК. Можно задерживать и изымать.<br><b>• Закон:</b> УК RMRP -> Незаконное ношение/хранение оружия.<br><b>• Детали:</b> Если ствол направлен на вас — разрешено открывать огонь на поражение.<br><b style='color:#38bdf8;'>• Фраза в войс:</b> «Полиция! Бросить оружие на землю, руки за голову, работаем!»",
+            "АДВОКАТ": "<b>• Суть:</b> Проверьте наличие у подзащитного лицензии на оружие и медкарты — это смягчит или снимет обвинение.<br><b>• Закон:</b> ФЗ «Об оружии» RMRP.<br><b>• Детали:</b> Уточните, было ли оружие в руках или за спиной.<br><b style='color:#38bdf8;'>• Фраза в войс:</b> «У моего подзащитного имеется действующая лицензия на оружие, прошу проверить реестр».",
+            "ГРАЖДАНИН": "<b>• Суть:</b> Не доставайте оружие в городе даже при наличии лицензии — открытое ношение запрещено.<br><b>• Закон:</b> ФЗ «Об оружии» и УК RMRP.<br><b>• Детали:</b> При задержании сразу сообщите о наличии лицензии, чтобы её не аннулировали без причины.<br><b style='color:#38bdf8;'>• Фраза в войс:</b> «У меня есть лицензия на оружие, я готов добровольно сдать его и показать документы»."
+        }
+    },
+    nrp: {
+        q: "Можно ли изъять нелегал до приезда адвоката?",
+        a: {
+            "ОФИЦЕР": "<b>• Суть:</b> Первичный обыск (изъятие оружия и опасных предметов) разрешен сразу, вторичный — после адвоката.<br><b>• Закон:</b> ПК RMRP + Правила гос. организаций.<br><b>• Детали:</b> Изъятие всего инвентаря до приезда адвоката без отыгровок наказывается за НРП Гос.<br><b style='color:#38bdf8;'>• Фраза в войс:</b> «Провожу первичный обыск с целью изъятия оружия и средств связи».",
+            "АДВОКАТ": "<b>• Суть:</b> Если офицер изъял лицензии или весь нелегал до вашего приезда — это нарушение прав на защиту.<br><b>• Закон:</b> ПК RMRP -> Порядок проведения вторичного обыска.<br><b>• Детали:</b> Фиксируйте нарушение для обращения в прокуратуру или жалобы.<br><b style='color:#38bdf8;'>• Фраза в войс:</b> «Почему вторичный обыск и изъятие проведены до реализации права на адвоката?»",
+            "ГРАЖДАНИН": "<b>• Суть:</b> Офицер имеет право забрать оружие при задержании, но лицензии забираются только в КПЗ.<br><b>• Закон:</b> ПК RMRP -> Стадии задержания.<br><b>• Детали:</b> Ведите запись экрана до момента посадки в камеру.<br><b style='color:#38bdf8;'>• Фраза в войс:</b> «Я запросил адвоката, прошу дождаться его приезда перед вторичным обыском»."
+        }
+    }
+};
+
+function cycleDemoRole() {
+    demoRoleIdx = (demoRoleIdx + 1) % demoRoles.length;
+    document.getElementById("demo-role-btn").innerText = demoRoles[demoRoleIdx] + " ↻";
+}
+
+function appendDemoMsg(q, aHtml, role) {
+    const box = document.getElementById("demo-chat-box");
+    box.innerHTML += '<div class="mock-user">' + q + '</div>';
+    setTimeout(function() {
+        box.innerHTML += '<div class="mock-ai"><div style="color:#38bdf8; font-size:11px; font-weight:bold; margin-bottom:4px;">' + role + '</div>' + aHtml + '</div>';
+        box.scrollTop = box.scrollHeight;
+    }, 300);
+    box.scrollTop = box.scrollHeight;
+}
+
+function runDemoPreset(key) {
+    const role = demoRoles[demoRoleIdx];
+    const item = demoPresets[key];
+    appendDemoMsg(item.q, item.a[role], role);
+}
+
+function runDemoCustom() {
+    const inp = document.getElementById("demo-input");
+    const txt = inp.value.trim();
+    if (!txt) return;
+    inp.value = "";
+    const role = demoRoles[demoRoleIdx];
+    const reply = "<b>• Суть:</b> В полной версии RMRPЮрист проанализирует вашу ситуацию по всем 31 кодексу и ФЗ за 1.5 секунды.<br><b>• Закон:</b> Поиск по актуальной базе УК, КоАП, ПК и правил НРП RMRP.<br><b>• Детали:</b> Активируйте ключ доступа, чтобы задавать любые вопросы текстом или голосом прямо поверх игры.<br><b style='color:#38bdf8;'>• Фраза в войс:</b> «Оформите подписку ниже, чтобы получить полный доступ ко всем функциям оверлея».";
+    appendDemoMsg(txt, reply, role);
+}
+</script>
+</body>
+</html>
