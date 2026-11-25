@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>RMRPЮрист</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0b0f14; color: #e2e8f0; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+#rmrp-lock-screen, #settings-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11,15,20,0.95); z-index: 99999; display: flex; justify-content: center; align-items: center; padding: 16px; }
+.card { background: #11161d; padding: 20px; border-radius: 16px; width: 100%; max-width: 360px; max-height: 92vh; overflow-y: auto; border: 1px solid #1e293b; }
+.card h2 { color: #f8fafc; margin-bottom: 8px; font-size: 18px; }
+.card p { color: #94a3b8; font-size: 13.5px; margin-bottom: 14px; }
+.card input[type="text"], .card select { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #334155; background: #0b0f14; color: #fff; font-size: 14px; margin-bottom: 10px; outline: none; }
+.primary-btn { width: 100%; padding: 11px; border-radius: 10px; border: none; background: #0ea5e9; color: #fff; font-size: 14px; font-weight: bold; cursor: pointer; }
+.header { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #11161d; border-bottom: 1px solid #1e293b; flex-shrink: 0; gap: 6px; }
+.logo { display: flex; align-items: center; gap: 5px; font-weight: 800; font-size: 15px; }
+.role-btn { background: #16202c; color: #38bdf8; border: 1px solid #1e3a5f; border-radius: 16px; padding: 5px 10px; font-size: 11px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+.timer-bar { display: flex; justify-content: space-between; align-items: center; padding: 7px 14px; background: #0e141b; border-bottom: 1px solid #1e293b; font-size: 12px; flex-shrink: 0; }
+.timer-btn { background: #1e293b; color: #cbd5e1; border: 1px solid #334155; border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: bold; cursor: pointer; }
+#lex-chat { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+.empty-hint { color: #64748b; font-size: 13px; text-align: center; margin-top: 24px; line-height: 1.5; }
+.presets-bar { display: flex; gap: 6px; overflow-x: auto; padding: 8px 14px 0 14px; background: #11161d; border-top: 1px solid #1e293b; flex-shrink: 0; scrollbar-width: none; }
+.presets-bar::-webkit-scrollbar { display: none; }
+.preset-chip { background: #16202c; color: #94a3b8; border: 1px solid #1e293b; border-radius: 14px; padding: 5px 10px; font-size: 11.5px; white-space: nowrap; cursor: pointer; }
+.input-area { padding: 10px 14px 12px 14px; background: #11161d; flex-shrink: 0; }
+#lex-input { width: 100%; background: transparent; color: #fff; border: none; outline: none; font-size: 14.5px; resize: none; font-family: inherit; margin-bottom: 6px; }
+.controls { display: flex; justify-content: space-between; align-items: center; }
+.circle-btn { background: #1e293b; color: #94a3b8; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.send-btn { background: #0ea5e9; color: #fff; font-weight: bold; font-size: 15px; }
+.setting-row { background: #0b0f14; border: 1px solid #1e293b; border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; }
+.setting-label { font-size: 11.5px; color: #64748b; margin-bottom: 6px; display: block; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes popIn { from { opacity: 0; transform: scale(0.94) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+@keyframes msgSlide { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+#settings-modal[style*="flex"], #laws-modal[style*="flex"], #nrp-modal[style*="flex"] { animation: fadeIn 0.2s ease-out; }
+#settings-modal .card { animation: popIn 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+#lex-chat > div { animation: msgSlide 0.25s ease-out; }
+body, .header, .timer-bar, .presets-bar, .input-area, .card, .setting-row { transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease; }
+button { transition: transform 0.12s ease, background 0.2s ease, opacity 0.2s ease; }
+button:active { transform: scale(0.94); }
+</style>
+</head>
+<body>
+<div id="rmrp-lock-screen">
+    <div class="card" style="text-align:center;">
+        <h2>RMRPЮрист</h2>
+        <p id="lock-msg">Проверка лицензии...</p>
+        <div id="lock-form" style="display:none;">
+            <input type="text" id="license-input" placeholder="RMRP-XXXX-XXXX" style="text-align:center; text-transform:uppercase;">
+            <button class="primary-btn" onclick="activateKey()">Активировать</button>
+            <p style="font-size:12px; color:#64748b; margin-top:14px; margin-bottom:0;">Нет ключа? Напишите автору в Telegram.</p>
+        </div>
+    </div>
+</div>
+
+<div id="settings-modal" style="display:none;">
+    <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h2 style="margin:0;">Настройки</h2>
+            <button onclick="document.getElementById('settings-modal').style.display='none'" style="background:none; border:none; color:#94a3b8; font-size:20px; cursor:pointer;">✕</button>
+        </div>
+        <div class="setting-row">
+            <span class="setting-label">Статус подписки</span>
+            <div id="sub-time-left" style="color:#38bdf8; font-weight:bold; font-size:13.5px;">Загрузка...</div>
+        </div>
+        <div class="setting-row">
+            <span class="setting-label">Дневной лимит ИИ-запросов</span>
+            <div id="requests-left-display" style="color:#38bdf8; font-weight:bold; font-size:13.5px;">Загрузка...</div>
+            <div id="reset-timer-display" style="color:#64748b; font-size:11.5px; margin-top:4px;">Обновляется каждые 24 часа</div>
+        </div>
+        <div class="setting-row">
+            <span class="setting-label">Фоновая тема</span>
+            <div style="display:flex; gap:6px;">
+                <button onclick="setBgTheme('dark')" style="flex:1; padding:7px; border-radius:8px; border:1px solid #334155; background:#0b0f14; color:#e2e8f0; font-size:12px; font-weight:bold; cursor:pointer;">Ночь</button>
+                <button onclick="setBgTheme('oled')" style="flex:1; padding:7px; border-radius:8px; border:1px solid #27272a; background:#000000; color:#e4e4e7; font-size:12px; font-weight:bold; cursor:pointer;">OLED</button>
+                <button onclick="setBgTheme('light')" style="flex:1; padding:7px; border-radius:8px; border:1px solid #cbd5e1; background:#f8fafc; color:#0f172a; font-size:12px; font-weight:bold; cursor:pointer;">День</button>
+            </div>
+        </div>
+        <div class="setting-row">
+            <span class="setting-label">Цвет акцентов</span>
+            <div style="display:flex; gap:10px; justify-content:space-between; padding-top:2px;">
+                <button onclick="setAppColor('#0ea5e9', '#38bdf8')" style="width:28px; height:28px; border-radius:50%; background:#0ea5e9; border:2px solid #fff; cursor:pointer;"></button>
+                <button onclick="setAppColor('#ef4444', '#f87171')" style="width:28px; height:28px; border-radius:50%; background:#ef4444; border:2px solid #1e293b; cursor:pointer;"></button>
+                <button onclick="setAppColor('#10b981', '#34d399')" style="width:28px; height:28px; border-radius:50%; background:#10b981; border:2px solid #1e293b; cursor:pointer;"></button>
+                <button onclick="setAppColor('#8b5cf6', '#a78bfa')" style="width:28px; height:28px; border-radius:50%; background:#8b5cf6; border:2px solid #1e293b; cursor:pointer;"></button>
+                <button onclick="setAppColor('#f59e0b', '#fbbf24')" style="width:28px; height:28px; border-radius:50%; background:#f59e0b; border:2px solid #1e293b; cursor:pointer;"></button>
+            </div>
+        </div>
+        <div class="setting-row">
+            <span class="setting-label">Горячая клавиша скрытия окна (ПК)</span>
+            <select id="hotkey-select" onchange="changeAppHotkey(this.value)" style="margin-bottom:0;">
+                <option value="f9">F9 (по умолчанию)</option>
+                <option value="f10">F10</option>
+                <option value="f8">F8</option>
+                <option value="f4">F4</option>
+                <option value="insert">Insert</option>
+                <option value="home">Home</option>
+                <option value="pause">Pause / Break</option>
+            </select>
+        </div>
+        <div class="setting-row">
+            <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                <span class="setting-label" style="margin:0;">Прозрачность окна (ПК)</span>
+                <span id="opacity-val" style="font-size:12px; color:#38bdf8; font-weight:bold;">100%</span>
+            </div>
+            <input type="range" id="opacity-slider" min="30" max="100" value="100" oninput="changeAppOpacity(this.value)" style="width:100%; margin:0; accent-color:#0ea5e9; cursor:pointer;">
+        </div>
+        <div class="setting-row" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <div style="font-size:13px; font-weight:bold;">Защита от записи</div>
+                <div style="font-size:11px; color:#64748b;">Выкл. для откатов NVIDIA</div>
+            </div>
+            <button id="stealth-toggle-btn" onclick="toggleStealthMode()" style="background:#0ea5e9; color:#fff; border:none; border-radius:8px; padding:7px 14px; font-weight:bold; font-size:12px; cursor:pointer;">ВКЛ</button>
+        </div>
+        <button class="primary-btn" onclick="document.getElementById('settings-modal').style.display='none'" style="background:#1e293b; margin-top:2px;">Закрыть</button>
+    </div>
+</div>
+<div id="laws-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#0b0f14; z-index:99999; flex-direction:column; padding:14px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h2 style="font-size:18px;">Законодательство RMRP</h2>
+        <button onclick="document.getElementById('laws-modal').style.display='none'" style="background:#1e293b; border:none; color:#fff; border-radius:8px; padding:6px 12px; font-weight:bold; cursor:pointer;">✕ Закрыть</button>
+    </div>
+    <input type="text" id="law-search-input" oninput="filterLawsView()" placeholder="Поиск по номеру статьи или слову (например: 8.7, тонировка, обыск)..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #334155; background:#11161d; color:#fff; margin-bottom:8px; outline:none;">
+    <div id="law-tabs" style="display:flex; gap:6px; overflow-x:auto; margin-bottom:10px; padding-bottom:4px; flex-shrink:0;"></div>
+    <div id="law-content-box" style="flex:1; overflow-y:auto; background:#11161d; border:1px solid #1e293b; border-radius:10px; padding:12px; font-size:13px; line-height:1.55; white-space:pre-wrap; color:#cbd5e1;">Загрузка законов из базы...</div>
+</div>
+
+<div id="nrp-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#0b0f14; z-index:99999; flex-direction:column; padding:14px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h2 style="font-size:18px; color:#fca5a5;">Правила проекта и НРП</h2>
+        <button onclick="document.getElementById('nrp-modal').style.display='none'" style="background:#1e293b; border:none; color:#fff; border-radius:8px; padding:6px 12px; font-weight:bold; cursor:pointer;">✕ Закрыть</button>
+    </div>
+    <input type="text" id="nrp-search-input" oninput="filterNrpView()" placeholder="Поиск по правилам (например: MG, PG, обыск, ЗЗ, откат)..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #334155; background:#11161d; color:#fff; margin-bottom:8px; outline:none;">
+    <div id="nrp-tabs" style="display:flex; gap:6px; overflow-x:auto; margin-bottom:10px; padding-bottom:4px; flex-shrink:0;"></div>
+    <div id="nrp-content-box" style="flex:1; overflow-y:auto; background:#11161d; border:1px solid #1e293b; border-radius:10px; padding:12px; font-size:13px; line-height:1.55; white-space:pre-wrap; color:#cbd5e1;">Загрузка правил...</div>
+</div>
+
+<div class="header">
+    <div class="logo"><span style="color:#38bdf8;">RMRPЮрист</span></div>
+    <div style="display:flex; gap:5px;">
+        <button class="role-btn" onclick="openLawsModal()" style="background:#0f2942; border-color:#0284c7;">Законка</button>
+        <button class="role-btn" onclick="openNrpModal()" style="background:#2d1518; color:#fca5a5; border-color:#7f1d1d;">НРП</button>
+    </div>
+    <div style="display:flex; gap:5px; align-items:center;">
+        <button id="lex-role-btn" class="role-btn" onclick="cycleLexRole()">ОФИЦЕР</button>
+        <button class="circle-btn" onclick="document.getElementById('settings-modal').style.display='flex'" title="Настройки">&#9881;</button>
+        <button class="circle-btn" onclick="clearLexChat()" title="Очистить">&#8634;</button>
+    </div>
+</div>
+
+<div class="timer-bar">
+    <span id="lawyer-timer-display" style="color:#94a3b8; font-weight:bold;">Адвокат: не запущен</span>
+    <div style="display:flex; gap:5px;">
+        <button class="timer-btn" onclick="startLawyerTimer(5)">5 мин</button>
+        <button class="timer-btn" onclick="startLawyerTimer(10)">10 мин</button>
+        <button class="timer-btn" onclick="stopLawyerTimer()">✕</button>
+    </div>
+</div>
+
+<div id="lex-chat">
+    <div class="empty-hint">Выберите быструю ситуацию снизу или опишите свой случай.<br>Сверху можно открыть всю Законку, памятку НРП или сменить роль.</div>
+</div>
+
+<div class="presets-bar">
+    <button class="preset-chip" onclick="sendPreset('Правило Миранды и порядок задержания')">Миранда</button>
+    <button class="preset-chip" onclick="sendPreset('Основания и порядок проведения личного обыска')">Обыск</button>
+    <button class="preset-chip" onclick="sendPreset('Основания для применения огнестрельного оружия')">Оружие</button>
+    <button class="preset-chip" onclick="sendPreset('Проверка документов и отказ предъявить паспорт')">Документы</button>
+    <button class="preset-chip" onclick="sendPreset('Оскорбление сотрудника полиции при исполнении')">Оскорбление</button>
+    <button class="preset-chip" onclick="sendPreset('Неподчинение законному требованию сотрудника')">Неподчинение</button>
+</div>
+
+<div class="input-area">
+    <textarea id="lex-input" rows="2" placeholder="Опишите ситуацию или задайте вопрос..." onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault(); sendLexMessage();}"></textarea>
+    <div class="controls">
+        <span id="hotkey-hint" style="font-size:11px; color:#475569;">Скрыть окно: F9</span>
+        <div style="display:flex; gap:8px;">
+            <button id="lex-mic-btn" class="circle-btn" style="color:#e2e8f0; font-size:10px; font-weight:bold;" onclick="toggleLexVoice()">MIC</button>
+            <button id="lex-send-btn" class="circle-btn send-btn" onclick="sendLexMessage()">&#10148;</button>
+        </div>
+    </div>
+</div>
+<script>
+const SB_BASE = "https://" + "unejwdoylcvtwyhjnltp" + ".supabase.co";
+const SB_KEY = "sb_publishable_zxEzT7COe0uFc-WNIY0Qxg_Fmi5x-tO";
+const sbHeaders = { "apikey": SB_KEY, "Authorization": "Bearer " + SB_KEY, "Content-Type": "application/json", "Prefer": "return=representation" };
+
+let currentDevId = null;
+let timerInterval = null;
+let timerSecondsLeft = 0;
+let currentUsedReq = 0;
+let currentLimitReq = 50;
+let currentLastReset = null;
+let resetCountdownInterval = null;
+
+function playBeep() {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        osc.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.4);
+    } catch (_) {}
+}
+
+window.startLawyerTimer = function(minutes) {
+    clearInterval(timerInterval);
+    timerSecondsLeft = minutes * 60;
+    const disp = document.getElementById("lawyer-timer-display");
+    disp.style.color = "#38bdf8";
+    const tick = () => {
+        const m = String(Math.floor(timerSecondsLeft / 60)).padStart(2, "0");
+        const s = String(timerSecondsLeft % 60).padStart(2, "0");
+        disp.innerText = "Ожидание адвоката: " + m + ":" + s;
+        if (timerSecondsLeft <= 0) {
+            clearInterval(timerInterval);
+            disp.style.color = "#ef4444";
+            disp.innerText = "Время ожидания адвоката истекло!";
+            playBeep();
+            appendLexBubble(false, "• Суть: Время ожидания адвоката истекло.\n• Детали: Можете продолжать процессуальные действия согласно Процессуальному кодексу RMRP.", "ТАЙМЕР");
+        }
+        timerSecondsLeft--;
+    };
+    tick();
+    timerInterval = setInterval(tick, 1000);
+};
+
+window.stopLawyerTimer = function() {
+    clearInterval(timerInterval);
+    const disp = document.getElementById("lawyer-timer-display");
+    disp.style.color = "#94a3b8";
+    disp.innerText = "Адвокат: не запущен";
+};
+
+function startResetCountdown() {
+    clearInterval(resetCountdownInterval);
+    const timerEl = document.getElementById("reset-timer-display");
+    if (!timerEl) return;
+    const tickReset = () => {
+        if (!currentLastReset) { timerEl.innerText = "Обновляется каждые 24 часа"; return; }
+        const diff = new Date(currentLastReset).getTime() + 86400000 - Date.now();
+        if (diff <= 0) {
+            timerEl.innerText = "Доступно обновление (сделайте любой запрос)";
+            timerEl.style.color = "#34d399";
+            return;
+        }
+        const h = String(Math.floor(diff / 3600000)).padStart(2, "0");
+        const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, "0");
+        const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, "0");
+        timerEl.style.color = "#64748b";
+        timerEl.innerText = "Обновление через: " + h + "ч " + m + "м " + s + "с";
+    };
+    tickReset();
+    resetCountdownInterval = setInterval(tickReset, 1000);
+}
+
+function updateSubDisplay(expiresAtStr, used, limit, lastResetStr) {
+    const el = document.getElementById("sub-time-left");
+    if (expiresAtStr) {
+        const exp = new Date(expiresAtStr);
+        const diffMs = exp - new Date();
+        if (diffMs <= 0) { el.innerText = "Истекла"; }
+        else {
+            const days = Math.floor(diffMs / 86400000);
+            const hours = Math.floor((diffMs % 86400000) / 3600000);
+            el.innerText = "Осталось: " + days + " дн. " + hours + " ч. (до " + exp.toLocaleDateString("ru-RU") + ")";
+        }
+    }
+    if (lastResetStr) {
+        currentLastReset = lastResetStr;
+        if (Date.now() - new Date(lastResetStr).getTime() >= 86400000) used = 0;
+    }
+    if (typeof used === "number") currentUsedReq = used;
+    if (typeof limit === "number") currentLimitReq = limit;
+    const reqEl = document.getElementById("requests-left-display");
+    if (reqEl) {
+        const left = Math.max(0, currentLimitReq - currentUsedReq);
+        reqEl.innerText = "Дневной лимит: " + left + " из " + currentLimitReq + " запросов";
+        reqEl.style.color = left <= 5 ? "#f87171" : "#38bdf8";
+    }
+    startResetCountdown();
+}
+
+async function getDeviceId() {
+    try {
+        if (window.pywebview && window.pywebview.api && window.pywebview.api.get_hwid) {
+            return await Promise.race([
+                window.pywebview.api.get_hwid(),
+                new Promise((_, rej) => setTimeout(() => rej("timeout"), 1500))
+            ]);
+        }
+    } catch (_) {}
+    let id = localStorage.getItem("rmrp_dev_id");
+    if (!id) { id = "mob_" + Math.random().toString(36).substr(2, 9) + "_" + Date.now(); localStorage.setItem("rmrp_dev_id", id); }
+    return id;
+}
+
+async function checkAccess() {
+    currentDevId = await getDeviceId();
+    const lockScreen = document.getElementById("rmrp-lock-screen");
+    const lockMsg = document.getElementById("lock-msg");
+    const lockForm = document.getElementById("lock-form");
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 4000);
+    try {
+        const res = await fetch(SB_BASE + "/rest/v1/license_keys?device_id=eq." + currentDevId + "&select=*", { headers: sbHeaders, signal: controller.signal });
+        clearTimeout(timer);
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+            const key = data.at(0);
+            if (!key.is_banned && new Date(key.expires_at) >= new Date()) {
+                updateSubDisplay(key.expires_at, key.requests_used || 0, key.requests_limit || 50, key.last_reset);
+                lockScreen.style.display = "none";
+                applySavedSettings();
+                return;
+            }
+            lockMsg.innerText = key.is_banned ? "Ваш ключ заблокирован." : "Срок подписки истек. Введите новый ключ:";
+        } else { lockMsg.innerText = "Введите лицензионный ключ:"; }
+    } catch (e) {
+        clearTimeout(timer);
+        lockMsg.innerText = "Введите ключ или проверьте сеть:";
+    }
+    lockForm.style.display = "block";
+}
+window.activateKey = async function() {
+    const code = document.getElementById("license-input").value.trim().toUpperCase();
+    if (!code) return alert("Введите ключ!");
+    if (!currentDevId) currentDevId = await getDeviceId();
+    const lockMsg = document.getElementById("lock-msg");
+    lockMsg.innerText = "Проверка ключа...";
+
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 5000);
+
+    try {
+        const res = await fetch(SB_BASE + "/rest/v1/license_keys?key_code=eq." + encodeURIComponent(code) + "&select=*", {
+            headers: sbHeaders,
+            signal: ctrl.signal
+        });
+        clearTimeout(t);
+        const data = await res.json();
+
+        if (!Array.isArray(data) || data.length === 0) {
+            lockMsg.innerText = "Неверный ключ!";
+            return;
+        }
+        const key = data.at(0);
+        if (key.is_banned) { lockMsg.innerText = "Ключ заблокирован."; return; }
+        if (key.device_id && key.device_id !== currentDevId) {
+            lockMsg.innerText = "Ключ привязан к другому устройству!";
+            return;
+        }
+
+        let expDate = key.expires_at;
+        if (!expDate) {
+            const d = new Date();
+            d.setDate(d.getDate() + (key.days || 30));
+            expDate = d.toISOString();
+        } else if (new Date(expDate) < new Date()) {
+            lockMsg.innerText = "Срок ключа истек.";
+            return;
+        }
+
+        const patchRes = await fetch(SB_BASE + "/rest/v1/license_keys?key_code=eq." + encodeURIComponent(code), {
+            method: "PATCH",
+            headers: sbHeaders,
+            body: JSON.stringify({ device_id: currentDevId, expires_at: expDate })
+        });
+
+        if (!patchRes.ok) {
+            lockMsg.innerText = "Ошибка записи в базу (" + patchRes.status + "). Проверьте права таблицы.";
+            return;
+        }
+
+        updateSubDisplay(expDate, key.requests_used || 0, key.requests_limit || 50, key.last_reset);
+        document.getElementById("rmrp-lock-screen").style.display = "none";
+        applySavedSettings();
+    } catch (e) {
+        clearTimeout(t);
+        lockMsg.innerText = "Тайм-аут или ошибка сети. Попробуйте ещё раз.";
+    }
+};
+
+
+window.setAppColor = function(mainHex, lightHex) {
+    localStorage.setItem("rmrp_color_main", mainHex);
+    localStorage.setItem("rmrp_color_light", lightHex);
+    let tag = document.getElementById("dyn-accent");
+    if (!tag) { tag = document.createElement("style"); tag.id = "dyn-accent"; document.head.appendChild(tag); }
+    tag.innerHTML = ".send-btn, .primary-btn { background: " + mainHex + " !important; } .logo span, #sub-time-left, #requests-left-display, #opacity-val, #lex-role-btn { color: " + lightHex + " !important; } #lex-role-btn { border-color: " + mainHex + " !important; } #opacity-slider { accent-color: " + mainHex + " !important; }";
+};
+
+window.setBgTheme = function(mode) {
+    localStorage.setItem("rmrp_bg_theme", mode);
+    let tag = document.getElementById("dyn-bg");
+    if (!tag) { tag = document.createElement("style"); tag.id = "dyn-bg"; document.head.appendChild(tag); }
+    if (mode === "oled") {
+        tag.innerHTML = "body, .setting-row, #laws-modal, #nrp-modal { background: #000000 !important; color: #f4f4f5 !important; } .header, .timer-bar, .presets-bar, .input-area, .card, #law-content-box, #nrp-content-box { background: #09090b !important; border-color: #27272a !important; }";
+    } else if (mode === "light") {
+        tag.innerHTML = "body, #laws-modal, #nrp-modal { background: #f1f5f9 !important; color: #0f172a !important; } .header, .presets-bar, .input-area, .card, #law-content-box, #nrp-content-box { background: #ffffff !important; border-color: #cbd5e1 !important; color: #0f172a !important; } .timer-bar, .setting-row { background: #e2e8f0 !important; border-color: #cbd5e1 !important; } #lex-input, .card h2 { color: #0f172a !important; } .preset-chip, .circle-btn, .timer-btn { background: #e2e8f0 !important; color: #334155 !important; border-color: #cbd5e1 !important; }";
+    } else { tag.innerHTML = ""; }
+};
+
+function applySavedSettings() {
+    const savedHk = localStorage.getItem("rmrp_hotkey") || "f9";
+    document.getElementById("hotkey-select").value = savedHk;
+    document.getElementById("hotkey-hint").innerText = "Скрыть окно: " + savedHk.toUpperCase();
+    if (window.pywebview && window.pywebview.api && window.pywebview.api.set_hotkey) window.pywebview.api.set_hotkey(savedHk);
+    const savedOp = localStorage.getItem("rmrp_opacity") || "100";
+    document.getElementById("opacity-slider").value = savedOp;
+    changeAppOpacity(savedOp);
+    const sMain = localStorage.getItem("rmrp_color_main");
+    const sLight = localStorage.getItem("rmrp_color_light");
+    if (sMain && sLight) setAppColor(sMain, sLight);
+    const sBg = localStorage.getItem("rmrp_bg_theme");
+    if (sBg) setBgTheme(sBg);
+}
+
+window.changeAppHotkey = async function(newKey) {
+    localStorage.setItem("rmrp_hotkey", newKey);
+    document.getElementById("hotkey-hint").innerText = "Скрыть окно: " + newKey.toUpperCase();
+    if (window.pywebview && window.pywebview.api && window.pywebview.api.set_hotkey) await window.pywebview.api.set_hotkey(newKey);
+};
+
+window.changeAppOpacity = async function(val) {
+    document.getElementById("opacity-val").innerText = val + "%";
+    localStorage.setItem("rmrp_opacity", val);
+    if (window.pywebview && window.pywebview.api && window.pywebview.api.set_opacity) await window.pywebview.api.set_opacity(parseInt(val));
+};
+
+window.toggleStealthMode = async function() {
+    const btn = document.getElementById("stealth-toggle-btn");
+    if (window.pywebview && window.pywebview.api && window.pywebview.api.toggle_stealth) {
+        const isStealth = await window.pywebview.api.toggle_stealth();
+        btn.innerText = isStealth ? "ВКЛ" : "ВЫКЛ";
+        btn.style.background = isStealth ? "#0ea5e9" : "#475569";
+    } else { alert("Доступно только в ПК-версии (.exe)."); }
+};
+
+let loadedLawsList = [], activeLawIdx = 0;
+
+window.openLawsModal = async function() {
+    document.getElementById("laws-modal").style.display = "flex";
+    if (loadedLawsList.length > 0) return;
+    const box = document.getElementById("law-content-box");
+    const tabs = document.getElementById("law-tabs");
+    try {
+        const res = await fetch(SB_BASE + "/rest/v1/rmrp_laws?select=id,title,content", { headers: sbHeaders });
+        const data = await res.json();
+        if (!Array.isArray(data) || data.length === 0) { box.innerText = "База законов пуста."; return; }
+        const allText = data.map(item => "=== " + (item.title || item.id) + " ===\n" + (item.content || "")).join("\n\n");
+        loadedLawsList = [{ id: "all", title: "Все", content: allText }].concat(data);
+        tabs.innerHTML = loadedLawsList.map((item, idx) => '<button onclick="selectLawTab(' + idx + ')" id="law-tab-' + idx + '" style="background:' + (idx===0?'#0ea5e9':'#1e293b') + '; color:#fff; border:none; border-radius:14px; padding:5px 12px; font-size:12px; font-weight:bold; cursor:pointer; white-space:nowrap;">' + (item.title || item.id) + '</button>').join("");
+        selectLawTab(0);
+    } catch (e) { box.innerText = "Ошибка загрузки законов: " + e; }
+};
+
+window.selectLawTab = function(idx) {
+    activeLawIdx = idx;
+    loadedLawsList.forEach((_, i) => {
+        const b = document.getElementById("law-tab-" + i);
+        if (b) b.style.background = (i === idx) ? "#0ea5e9" : "#1e293b";
+    });
+    filterLawsView();
+};
+
+window.filterLawsView = function() {
+    const box = document.getElementById("law-content-box");
+    const item = loadedLawsList[activeLawIdx];
+    if (!item) return;
+    const q = document.getElementById("law-search-input").value.trim().toLowerCase();
+    const text = item.content || "";
+    if (!q) {
+        box.innerText = activeLawIdx === 0 ? "Введите номер статьи или слово в поиск выше, чтобы найти по всем кодексам сразу, или выберите нужный закон сверху." : text;
+        return;
+    }
+    const lines = text.split("\n");
+    const found = [];
+    let currentTitle = item.title;
+    for (let i = 0; i < lines.length; i++) {
+        if (lines[i].startsWith("===") && lines[i].endsWith("===")) currentTitle = lines[i].replace(/=/g, "").trim();
+        if (lines[i].toLowerCase().includes(q)) {
+            const prefix = activeLawIdx === 0 ? "[" + currentTitle + "]\n" : "";
+            found.push(prefix + lines.slice(Math.max(0, i - 1), i + 6).join("\n"));
+        }
+    }
+    box.innerText = found.length > 0 ? found.join("\n\n-------------------\n\n") : "По запросу «" + q + "» ничего не найдено.";
+};
+let loadedNrpList = [], activeNrpIdx = 0;
+
+window.openNrpModal = async function() {
+    document.getElementById("nrp-modal").style.display = "flex";
+    if (loadedNrpList.length > 0) return;
+    const box = document.getElementById("nrp-content-box");
+    const tabs = document.getElementById("nrp-tabs");
+    try {
+        const res = await fetch(SB_BASE + "/rest/v1/rmrp_nrp?select=id,title,content", { headers: sbHeaders });
+        const data = await res.json();
+        if (!Array.isArray(data) || data.length === 0) { box.innerText = "База правил НРП пуста."; return; }
+        const allText = data.map(item => "=== " + (item.title || item.id) + " ===\n" + (item.content || "")).join("\n\n");
+        loadedNrpList = [{ id: "all", title: "Все", content: allText }].concat(data);
+        tabs.innerHTML = loadedNrpList.map((item, idx) => '<button onclick="selectNrpTab(' + idx + ')" id="nrp-tab-' + idx + '" style="background:' + (idx===0?'#dc2626':'#1e293b') + '; color:#fff; border:none; border-radius:14px; padding:5px 12px; font-size:12px; font-weight:bold; cursor:pointer; white-space:nowrap;">' + (item.title || item.id) + '</button>').join("");
+        selectNrpTab(0);
+    } catch (e) { box.innerText = "Ошибка загрузки правил: " + e; }
+};
+
+window.selectNrpTab = function(idx) {
+    activeNrpIdx = idx;
+    loadedNrpList.forEach((_, i) => {
+        const b = document.getElementById("nrp-tab-" + i);
+        if (b) b.style.background = (i === idx) ? "#dc2626" : "#1e293b";
+    });
+    filterNrpView();
+};
+
+window.filterNrpView = function() {
+    const box = document.getElementById("nrp-content-box");
+    const item = loadedNrpList[activeNrpIdx];
+    if (!item) return;
+    const q = document.getElementById("nrp-search-input").value.trim().toLowerCase();
+    const text = item.content || "";
+    if (!q) {
+        box.innerText = activeNrpIdx === 0 ? "Введите слово в поиск выше, чтобы найти по всем правилам проекта сразу, или выберите нужный раздел сверху." : text;
+        return;
+    }
+    const lines = text.split("\n");
+    const found = [];
+    let currentTitle = item.title;
+    for (let i = 0; i < lines.length; i++) {
+        if (lines[i].startsWith("===") && lines[i].endsWith("===")) currentTitle = lines[i].replace(/=/g, "").trim();
+        if (lines[i].toLowerCase().includes(q)) {
+            const prefix = activeNrpIdx === 0 ? "[" + currentTitle + "]\n" : "";
+            found.push(prefix + lines.slice(Math.max(0, i - 1), i + 6).join("\n"));
+        }
+    }
+    box.innerText = found.length > 0 ? found.join("\n\n-------------------\n\n") : "По запросу «" + q + "» ничего не найдено.";
+};
+
+const lexRoles = ["ОФИЦЕР", "АДВОКАТ", "ГРАЖДАНИН"];
+let lexRoleIdx = 0;
+
+window.cycleLexRole = function() {
+    lexRoleIdx = (lexRoleIdx + 1) % lexRoles.length;
+    document.getElementById("lex-role-btn").innerText = lexRoles[lexRoleIdx];
+};
+
+window.clearLexChat = function() {
+    document.getElementById("lex-chat").innerHTML = '<div class="empty-hint">История очищена. Выберите ситуацию снизу или напишите запрос.</div>';
+};
+
+window.sendPreset = function(promptText) {
+    document.getElementById("lex-input").value = promptText;
+    window.sendLexMessage();
+};
+
+function appendLexBubble(isUser, text, roleLabel) {
+    const chat = document.getElementById("lex-chat");
+    const hint = chat.querySelector(".empty-hint");
+    if (hint) hint.remove();
+    const wrap = document.createElement("div");
+    wrap.style.display = "flex";
+    wrap.style.flexDirection = "column";
+    wrap.style.alignItems = isUser ? "flex-end" : "flex-start";
+    if (isUser) {
+        wrap.innerHTML = '<div style="background:#0284c7; color:#fff; padding:10px 14px; border-radius:14px 14px 4px 14px; max-width:85%; font-size:14px; line-height:1.4; white-space:pre-wrap;">' + text + '</div>';
+    } else {
+        const formatted = text.replace(/• Суть:/g, '<b style="color:#fff;">• Суть:</b>').replace(/• Закон:/g, '<b style="color:#fff;">• Закон:</b>').replace(/• Детали:/g, '<b style="color:#fff;">• Детали:</b>').replace(/• Фраза в войс:/g, '<b style="color:#38bdf8;">• Фраза в войс:</b>');
+        wrap.innerHTML = '<div style="color:#38bdf8; font-size:11px; font-weight:bold; margin-bottom:4px;">' + roleLabel + '</div><div style="color:#cbd5e1; font-size:13.5px; line-height:1.55; white-space:pre-wrap; max-width:96%;">' + formatted + '</div>';
+    }
+    chat.appendChild(wrap);
+    chat.scrollTop = chat.scrollHeight;
+    return wrap;
+}
+
+window.sendLexMessage = async function() {
+    const input = document.getElementById("lex-input");
+    const text = input.value.trim();
+    if (!text) return;
+    const currentRole = lexRoles[lexRoleIdx];
+    input.value = "";
+    appendLexBubble(true, text);
+    const loading = appendLexBubble(false, "Анализирую законы RMRP...", currentRole);
+    try {
+        const res = await fetch(SB_BASE + "/functions/v1/ai-lawyer", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "apikey": SB_KEY, "Authorization": "Bearer " + SB_KEY },
+            body: JSON.stringify({ situation: text, role: currentRole, deviceId: currentDevId })
+        });
+        const data = await res.json();
+        loading.remove();
+        appendLexBubble(false, data.reply || "Нет ответа.", currentRole);
+        if (data.reply && !data.reply.includes("лимит ИИ-запросов исчерпан")) {
+            updateSubDisplay(null, currentUsedReq + 1, currentLimitReq, null);
+        }
+    } catch (e) {
+        loading.remove();
+        appendLexBubble(false, "Ошибка соединения.", currentRole);
+    }
+};
+
+let lexRec = null, lexChunks = [], lexIsRec = false;
+window.toggleLexVoice = async function() {
+    const btn = document.getElementById("lex-mic-btn");
+    if (lexIsRec && lexRec) { lexRec.stop(); return; }
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        lexChunks = [];
+        lexRec = new MediaRecorder(stream);
+        lexRec.ondataavailable = e => { if (e.data.size > 0) lexChunks.push(e.data); };
+        lexRec.onstop = async () => {
+            lexIsRec = false;
+            btn.style.background = "#1e293b";
+            btn.innerText = "...";
+            stream.getTracks().forEach(t => t.stop());
+            const form = new FormData();
+            form.append("file", new Blob(lexChunks, { type: "audio/webm" }), "voice.webm");
+            try {
+                const res = await fetch(SB_BASE + "/functions/v1/voice-to-text", { method: "POST", headers: { "apikey": SB_KEY, "Authorization": "Bearer " + SB_KEY }, body: form });
+                const data = await res.json();
+                if (data.text) { document.getElementById("lex-input").value = data.text; window.sendLexMessage(); }
+            } catch (_) {}
+            btn.innerText = "MIC";
+        };
+        lexRec.start();
+        lexIsRec = true;
+        btn.style.background = "#dc2626";
+        btn.innerText = "STOP";
+    } catch (err) { alert("Нет доступа к микрофону."); }
+};
+
+if (window.pywebview) {
+    checkAccess();
+} else {
+    window.addEventListener("pywebviewready", checkAccess);
+    setTimeout(() => { if (!currentDevId) checkAccess(); }, 1200);
+}
+</script>
+</body>
+</html>
